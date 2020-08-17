@@ -1,0 +1,62 @@
+---
+title: "Algorithmic Advice Study Analysis"
+output: html_document
+---
+
+Import libraries
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+data <- read_csv("data/first340_data.csv") 
+```
+
+```{r pressure, echo=FALSE}
+count_adviceTypes <- data %>%
+  filter(!is.na(adviceType) & attentionQ==20) %>% 
+  group_by(adviceType) %>%
+  count(adviceType) %>% 
+  ungroup() %>% 
+  mutate(percent_total = n/sum(n))
+     
+count_adviceTypes       
+```
+
+```{r}
+ggplot(data=count_adviceTypes,aes(x=adviceType,y=percent_total))+geom_point()+ylim(0,1)
+```
+
+```{r}
+k <- length(unique(count_adviceTypes$adviceType))
+n_comparisons <- k*(k-1)/2
+
+M_procedure <- list("label"=character(),"difference"=numeric())
+
+for(i in 1:n_comparisons){
+  for(j in 2:n_comparisons-1){
+    if(i+j<=k){
+      i_th_lbl <- count_adviceTypes$adviceType[i]
+      i_th <- count_adviceTypes$percent_total[i]
+      j_th_lbl <- count_adviceTypes$adviceType[i+j]
+      j_th <- count_adviceTypes$percent_total[i+j]
+      
+      M_procedure$label <- c(M_procedure$label,paste0(i_th_lbl,"-",j_th_lbl))
+      M_procedure$difference <- c(M_procedure$difference,abs(i_th - j_th))
+    }
+  }
+}
+
+M_procedure <- as.data.frame(cbind(M_procedure$label,M_procedure$difference))
+colnames(M_procedure) <- c("label","difference")
+```
+
+```{r}
+
+M_procedure
+```
+```{r}
+
+```
+
