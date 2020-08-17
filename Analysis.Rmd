@@ -29,10 +29,6 @@ ggplot(data=count_adviceTypes,aes(x=adviceType,y=percent_total))+geom_point()+yl
 ```
 
 ```{r}
-```
-
-
-```{r}
 #chi-sq = 7.815
 sqrt_chi <- sqrt(7.815)
 
@@ -83,8 +79,20 @@ for(i in 1:nrow(M_procedure)){
     }
   }
 M_procedure
+
+# option_1 = lower overall infection rate than 'strict' advice
+# option_2 = equal overall infection rate than 'strict' advice
+# option_3 = higher overall infection rate than 'strict' advice
 ```
+
 ```{r}
-is.numeric(M_procedure$difference[1])
+xtabs_type_option <- data %>%
+  filter(!is.na(adviceType) & attentionQ==20) %>%
+  group_by(adviceType,optionB) %>% 
+  summarize(n=n()) %>% 
+  mutate(optionB = paste0('option_',optionB)) %>% 
+  spread('optionB','n')
+
+xtabs_type_option
 ```
 
