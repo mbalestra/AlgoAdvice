@@ -8,14 +8,17 @@ Import libraries
 library(tidyverse)
 ```
 
+Load data
 
 ```{r}
 data <- read_csv("data/first340_data.csv") 
 ```
 
+Calculate the number & percent of people who selected each advice type
+
 ```{r}
 count_adviceTypes <- data %>%
-  filter(!is.na(adviceType) & attentionQ==20) %>% 
+  filter(!is.na(adviceType) & attentionQ==20) %>% # removing ppl who failed attention check + NA in advice type
   group_by(adviceType) %>%
   count(adviceType) %>% 
   ungroup() %>% 
@@ -27,6 +30,8 @@ count_adviceTypes
 ```{r}
 ggplot(data=count_adviceTypes,aes(x=adviceType,y=percent_total))+geom_point()+ylim(0,1)
 ```
+
+Marascuillo procedure for comparing multiple proportions
 
 ```{r}
 #chi-sq = 7.815
@@ -79,10 +84,16 @@ for(i in 1:nrow(M_procedure)){
     }
   }
 M_procedure
+```
 
-# option_1 = lower overall infection rate than 'strict' advice
-# option_2 = equal overall infection rate than 'strict' advice
-# option_3 = higher overall infection rate than 'strict' advice
+Check how many people exposed to each condition
+
+```{r}
+xtab <- data %>%
+  filter(!is.na(adviceType) & attentionQ==20) %>%
+  group_by(optionB) %>% 
+  summarize(n=n())
+xtab
 ```
 
 ```{r}
@@ -94,5 +105,57 @@ xtabs_type_option <- data %>%
   spread('optionB','n')
 
 xtabs_type_option
+
+# option_1 = lower overall infection rate than 'strict' advice
+# option_2 = equal overall infection rate than 'strict' advice
+# option_3 = higher overall infection rate than 'strict' advice
 ```
 
+Chi-square analysis 
+
+```{r}
+indep_analysis <- xtabs_type_option %>% 
+  filter(!is.na(option_1)) %>% 
+  column_to_rownames(var="adviceType")
+
+chisq <- chisq.test(indep_analysis)
+chisq
+```
+
+Print out expected matrix 
+
+```{r}
+chisq$expected
+```
+
+Extract Pearson residuals to see which cells contribute the most to the chi-square score
+
+```{r}
+round(chisq$residuals, 3)
+```
+
+```{r}
+library(corrplot)
+corrplot(chisq$residuals,is.cor=FALSE)
+```
+
+- Strong positive correlation between option 3 and strict advice
+- Negative correlation between option 3 and relaxed/both advice
+- Strong negative correlation between option 1 and strict advice
+
+
+
+Contibution in percentage (%)
+
+```{r}
+contrib <- 100*chisq$residuals^2/chisq$statistic
+round(contrib, 3)
+```
+
+Visualize the contribution
+
+```{r}
+corrplot(contrib, is.cor = FALSE)
+```
+
+- Option 3 is strongly associated with strict advice
