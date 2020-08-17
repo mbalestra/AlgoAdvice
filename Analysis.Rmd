@@ -29,33 +29,62 @@ ggplot(data=count_adviceTypes,aes(x=adviceType,y=percent_total))+geom_point()+yl
 ```
 
 ```{r}
+```
+
+
+```{r}
+#chi-sq = 7.815
+sqrt_chi <- sqrt(7.815)
+
 k <- length(unique(count_adviceTypes$adviceType))
 n_comparisons <- k*(k-1)/2
 
-M_procedure <- list("label"=character(),"difference"=numeric())
+M_procedure <- list("label"=character(),"difference"=numeric(),"r"=numeric())
 
 for(i in 1:n_comparisons){
   for(j in 2:n_comparisons-1){
     if(i+j<=k){
       i_th_lbl <- count_adviceTypes$adviceType[i]
-      i_th <- count_adviceTypes$percent_total[i]
       j_th_lbl <- count_adviceTypes$adviceType[i+j]
+      
+      i_th <- count_adviceTypes$percent_total[i]
       j_th <- count_adviceTypes$percent_total[i+j]
+      
+      I_th = i_th*(1-i_th)/count_adviceTypes$n[i]
+      J_th = j_th*(1-j_th)/count_adviceTypes$n[i+j]
+      r_ij = sqrt_chi*sqrt(I_th + J_th) 
       
       M_procedure$label <- c(M_procedure$label,paste0(i_th_lbl,"-",j_th_lbl))
       M_procedure$difference <- c(M_procedure$difference,abs(i_th - j_th))
+      M_procedure$r <- c(M_procedure$r,r_ij)
     }
   }
 }
 
-M_procedure <- as.data.frame(cbind(M_procedure$label,M_procedure$difference))
-colnames(M_procedure) <- c("label","difference")
+M_procedure <- as.data.frame(cbind(M_procedure$label,M_procedure$difference,M_procedure$r))
+colnames(M_procedure) <- c("label","difference","r")
+
+M_procedure$difference <- as.numeric(as.character(M_procedure$difference))
+M_procedure$r <- as.numeric(as.character(M_procedure$r))
 ```
 
 ```{r}
+str(M_procedure)
+```
+
+
+```{r}
+# Marascuillo procedure for comparing multiple proportions
+for(i in 1:nrow(M_procedure)){
+  if(M_procedure$difference[i] > M_procedure$r[i]){
+    M_procedure$significant[i] <- 1
+    }else{
+      M_procedure$significant[i] <- 0
+    }
+  }
 M_procedure
 ```
 ```{r}
-
+is.numeric(M_procedure$difference[1])
 ```
 
