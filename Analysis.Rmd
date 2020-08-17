@@ -13,7 +13,7 @@ library(tidyverse)
 data <- read_csv("data/first340_data.csv") 
 ```
 
-```{r pressure, echo=FALSE}
+```{r}
 count_adviceTypes <- data %>%
   filter(!is.na(adviceType) & attentionQ==20) %>% 
   group_by(adviceType) %>%
@@ -53,7 +53,6 @@ colnames(M_procedure) <- c("label","difference")
 ```
 
 ```{r}
-
 M_procedure
 ```
 ```{r}
